@@ -18,7 +18,9 @@ namespace CybersecurityChatbot
 
             Name = input.Trim();
 
-            Console.WriteLine($"\nHello, {Name}! Welcome to the Cybersecurity Awareness Bot.");
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine($"\nHello, {Name}! Welcome to the Cybersecurity Awareness Bot.\n");
+            Console.ResetColor();
         }
     }
 }
