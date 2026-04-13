@@ -23,6 +23,9 @@ namespace CybersecurityChatbot
             User user = new User();
             Chatbot bot = new Chatbot();
 
+            AudioPlayer audio = new AudioPlayer();
+            audio.PlayGreeting();
+
             user.GetUserName();
             bot.StartChat(user.Name);
         }

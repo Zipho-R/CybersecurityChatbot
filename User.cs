@@ -17,6 +17,7 @@ namespace CybersecurityChatbot
             }
 
             Name = input.Trim();
+
             Console.WriteLine($"\nHello, {Name}! Welcome to the Cybersecurity Awareness Bot.");
         }
     }
