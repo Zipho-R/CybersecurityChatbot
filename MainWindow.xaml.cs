@@ -10,7 +10,9 @@ namespace CybersecurityChatbot
         private readonly ChatBot _chatBot;
         private readonly TaskManager _taskManager;
         private readonly QuizManager _quizManager;
+        private readonly ActivityLogger _activityLogger;
         private bool _quizAnswerSubmitted;
+        private bool _showingAllActivities;
 
         public MainWindow()
         {
@@ -19,10 +21,13 @@ namespace CybersecurityChatbot
             _chatBot = new ChatBot();
             _taskManager = new TaskManager();
             _quizManager = new QuizManager();
+            _activityLogger = new ActivityLogger();
 
             PlayVoiceGreeting();
             LoadAsciiArt();
             RefreshTaskGrid();
+            _activityLogger.Log("Application launched and saved tasks loaded.");
+            RefreshActivityLog();
 
             AppendBotMessage(_chatBot.GetGreeting());
         }
@@ -54,6 +59,8 @@ namespace CybersecurityChatbot
 
             string response = _chatBot.ProcessInput(input);
             AppendBotMessage(response);
+            _activityLogger.Log($"Chat message processed: {input}");
+            RefreshActivityLog();
 
             UserInput.Clear();
             UserInput.Focus();
@@ -86,6 +93,12 @@ namespace CybersecurityChatbot
             TaskDescriptionInput.Clear();
             TaskReminderInput.Clear();
             TaskStatusText.Text = $"Task #{task.Id} added successfully.";
+            _activityLogger.Log($"Task added: {task.Title}.");
+            if (!string.IsNullOrWhiteSpace(task.Reminder))
+            {
+                _activityLogger.Log($"Reminder set for task '{task.Title}': {task.Reminder}.");
+            }
+            RefreshActivityLog();
             RefreshTaskGrid();
             AppendBotMessage($"Task added: '{task.Title}'.");
         }
@@ -101,6 +114,8 @@ namespace CybersecurityChatbot
             if (_taskManager.MarkAsComplete(selectedTask.Id))
             {
                 TaskStatusText.Text = $"'{selectedTask.Title}' marked complete.";
+                _activityLogger.Log($"Task completed: {selectedTask.Title}.");
+                RefreshActivityLog();
                 RefreshTaskGrid();
                 AppendBotMessage($"Great work! The task '{selectedTask.Title}' is complete.");
             }
@@ -132,6 +147,8 @@ namespace CybersecurityChatbot
             if (_taskManager.DeleteTask(selectedTask.Id))
             {
                 TaskStatusText.Text = $"'{selectedTask.Title}' deleted.";
+                _activityLogger.Log($"Task deleted: {selectedTask.Title}.");
+                RefreshActivityLog();
                 RefreshTaskGrid();
                 AppendBotMessage($"The task '{selectedTask.Title}' was deleted.");
             }
@@ -169,6 +186,8 @@ namespace CybersecurityChatbot
         {
             _quizManager.ResetQuiz();
             _quizAnswerSubmitted = false;
+            _activityLogger.Log("Cybersecurity quiz started.");
+            RefreshActivityLog();
             StartQuizButton.Content = "Restart Quiz";
             LoadCurrentQuizQuestion();
         }
@@ -189,6 +208,8 @@ namespace CybersecurityChatbot
 
             QuizAnswerResult result = _quizManager.SubmitAnswer(selectedAnswer);
             _quizAnswerSubmitted = true;
+            _activityLogger.Log($"Quiz question {_quizManager.CurrentQuestionNumber} answered {(result.IsCorrect ? "correctly" : "incorrectly")}.");
+            RefreshActivityLog();
             QuizFeedbackText.Text = result.Feedback;
             QuizFeedbackText.Foreground = result.IsCorrect
                 ? System.Windows.Media.Brushes.DarkGreen
@@ -252,9 +273,34 @@ namespace CybersecurityChatbot
             QuizOptionsList.IsEnabled = false;
             QuizFeedbackText.Foreground = System.Windows.Media.Brushes.DarkBlue;
             QuizFeedbackText.Text = _quizManager.GetFinalMessage();
+            _activityLogger.Log($"Cybersecurity quiz completed with {_quizManager.GetFinalScore()}.");
+            RefreshActivityLog();
             SubmitAnswerButton.IsEnabled = false;
             NextQuestionButton.IsEnabled = false;
             StartQuizButton.Content = "Try Again";
+        }
+
+        private void RefreshActivityLog()
+        {
+            ActivityLogList.ItemsSource = null;
+            ActivityLogList.ItemsSource = _showingAllActivities
+                ? _activityLogger.GetAllEntries()
+                : _activityLogger.GetRecentEntries(10);
+
+            ShowMoreActivitiesButton.Content = _showingAllActivities
+                ? "Show Recent"
+                : "Show More";
+        }
+
+        private void ShowMoreActivitiesButton_Click(object sender, RoutedEventArgs e)
+        {
+            _showingAllActivities = !_showingAllActivities;
+            RefreshActivityLog();
+        }
+
+        private void RefreshActivityLogButton_Click(object sender, RoutedEventArgs e)
+        {
+            RefreshActivityLog();
         }
 
         private void AppendUserMessage(string message)
