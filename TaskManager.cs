@@ -41,6 +41,11 @@ namespace CybersecurityChatbot
             return _storage.MarkAsComplete(id);
         }
 
+        public bool UpdateReminder(int id, string reminder)
+        {
+            return _storage.UpdateReminder(id, reminder, ParseReminderDate(reminder));
+        }
+
         public bool DeleteTask(int id)
         {
             return _storage.DeleteTask(id);

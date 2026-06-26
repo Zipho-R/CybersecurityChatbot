@@ -18,10 +18,14 @@ namespace CybersecurityChatbot
         {
             InitializeComponent();
 
-            _chatBot = new ChatBot();
+            _activityLogger = new ActivityLogger();
             _taskManager = new TaskManager();
             _quizManager = new QuizManager();
-            _activityLogger = new ActivityLogger();
+            _chatBot = new ChatBot(_taskManager, _activityLogger);
+            _chatBot.TasksChanged += HandleChatTasksChanged;
+            _chatBot.TasksViewRequested += HandleChatTasksViewRequested;
+            _chatBot.QuizRequested += HandleChatQuizRequested;
+            _chatBot.ActivityLogRequested += HandleChatActivityLogRequested;
 
             PlayVoiceGreeting();
             LoadAsciiArt();
@@ -59,8 +63,6 @@ namespace CybersecurityChatbot
 
             string response = _chatBot.ProcessInput(input);
             AppendBotMessage(response);
-            _activityLogger.Log($"Chat message processed: {input}");
-            RefreshActivityLog();
 
             UserInput.Clear();
             UserInput.Focus();
@@ -98,8 +100,8 @@ namespace CybersecurityChatbot
             {
                 _activityLogger.Log($"Reminder set for task '{task.Title}': {task.Reminder}.");
             }
-            RefreshActivityLog();
             RefreshTaskGrid();
+            RefreshActivityLog();
             AppendBotMessage($"Task added: '{task.Title}'.");
         }
 
@@ -115,8 +117,8 @@ namespace CybersecurityChatbot
             {
                 TaskStatusText.Text = $"'{selectedTask.Title}' marked complete.";
                 _activityLogger.Log($"Task completed: {selectedTask.Title}.");
-                RefreshActivityLog();
                 RefreshTaskGrid();
+                RefreshActivityLog();
                 AppendBotMessage($"Great work! The task '{selectedTask.Title}' is complete.");
             }
             else
@@ -148,8 +150,8 @@ namespace CybersecurityChatbot
             {
                 TaskStatusText.Text = $"'{selectedTask.Title}' deleted.";
                 _activityLogger.Log($"Task deleted: {selectedTask.Title}.");
-                RefreshActivityLog();
                 RefreshTaskGrid();
+                RefreshActivityLog();
                 AppendBotMessage($"The task '{selectedTask.Title}' was deleted.");
             }
             else
@@ -273,34 +275,69 @@ namespace CybersecurityChatbot
             QuizOptionsList.IsEnabled = false;
             QuizFeedbackText.Foreground = System.Windows.Media.Brushes.DarkBlue;
             QuizFeedbackText.Text = _quizManager.GetFinalMessage();
-            _activityLogger.Log($"Cybersecurity quiz completed with {_quizManager.GetFinalScore()}.");
-            RefreshActivityLog();
             SubmitAnswerButton.IsEnabled = false;
             NextQuestionButton.IsEnabled = false;
             StartQuizButton.Content = "Try Again";
+            _activityLogger.Log($"Cybersecurity quiz completed with a score of {_quizManager.GetFinalScore()}.");
+            RefreshActivityLog();
+        }
+
+
+
+
+
+        private void HandleChatTasksChanged()
+        {
+            RefreshTaskGrid();
+            RefreshActivityLog();
+        }
+
+        private void HandleChatTasksViewRequested()
+        {
+            MainTabs.SelectedItem = TasksTab;
+        }
+
+        private void HandleChatQuizRequested()
+        {
+            MainTabs.SelectedItem = QuizTab;
+            StartQuiz();
+        }
+
+        private void HandleChatActivityLogRequested()
+        {
+            _showingAllActivities = false;
+            RefreshActivityLog();
+            MainTabs.SelectedItem = ActivityTab;
+        }
+
+        private void ShowRecentActivityButton_Click(object sender, RoutedEventArgs e)
+        {
+            _showingAllActivities = false;
+            RefreshActivityLog();
+        }
+
+        private void ShowMoreActivityButton_Click(object sender, RoutedEventArgs e)
+        {
+            _showingAllActivities = true;
+            RefreshActivityLog();
         }
 
         private void RefreshActivityLog()
         {
-            ActivityLogList.ItemsSource = null;
-            ActivityLogList.ItemsSource = _showingAllActivities
+            var entries = _showingAllActivities
                 ? _activityLogger.GetAllEntries()
                 : _activityLogger.GetRecentEntries(10);
 
-            ShowMoreActivitiesButton.Content = _showingAllActivities
-                ? "Show Recent"
-                : "Show More";
-        }
+            ActivityLogList.ItemsSource = null;
+            ActivityLogList.ItemsSource = entries.Count == 0
+                ? new[] { "No activity has been recorded yet." }
+                : entries;
 
-        private void ShowMoreActivitiesButton_Click(object sender, RoutedEventArgs e)
-        {
-            _showingAllActivities = !_showingAllActivities;
-            RefreshActivityLog();
-        }
+            ActivitySummaryText.Text = _showingAllActivities
+                ? $"Showing all {_activityLogger.Count} recorded actions."
+                : $"Showing the latest {Math.Min(10, _activityLogger.Count)} of {_activityLogger.Count} recorded actions.";
 
-        private void RefreshActivityLogButton_Click(object sender, RoutedEventArgs e)
-        {
-            RefreshActivityLog();
+            ShowMoreActivityButton.IsEnabled = !_showingAllActivities && _activityLogger.Count > 10;
         }
 
         private void AppendUserMessage(string message)
