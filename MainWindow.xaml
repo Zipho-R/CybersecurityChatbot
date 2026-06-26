@@ -192,6 +192,88 @@
                                Margin="0,12,0,0"/>
                 </Grid>
             </TabItem>
+
+            <TabItem x:Name="QuizTab" Header="Cyber Quiz">
+                <Grid Margin="18" Background="White">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0"
+                               Text="Cybersecurity Mini-Game"
+                               FontSize="24"
+                               FontWeight="Bold"
+                               HorizontalAlignment="Center"/>
+
+                    <TextBlock x:Name="QuizProgressText"
+                               Grid.Row="1"
+                               Text="Press Start Quiz to begin."
+                               FontWeight="Bold"
+                               HorizontalAlignment="Center"
+                               Margin="0,8,0,12"/>
+
+                    <Border Grid.Row="2"
+                            Background="#FCE4EC"
+                            BorderBrush="#F8BBD0"
+                            BorderThickness="2"
+                            CornerRadius="10"
+                            Padding="14">
+                        <TextBlock x:Name="QuizQuestionText"
+                                   Text="Test your knowledge with 12 cybersecurity questions."
+                                   FontSize="18"
+                                   TextWrapping="Wrap"
+                                   TextAlignment="Center"/>
+                    </Border>
+
+                    <ListBox x:Name="QuizOptionsList"
+                             Grid.Row="3"
+                             FontSize="16"
+                             Margin="50,16"
+                             Padding="8"
+                             IsEnabled="False"/>
+
+                    <TextBlock x:Name="QuizFeedbackText"
+                               Grid.Row="4"
+                               TextWrapping="Wrap"
+                               FontSize="15"
+                               FontWeight="SemiBold"
+                               TextAlignment="Center"
+                               MinHeight="55"
+                               Margin="20,5"/>
+
+                    <StackPanel Grid.Row="5"
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Center">
+                        <Button x:Name="StartQuizButton"
+                                Content="Start Quiz"
+                                Width="120"
+                                Padding="8"
+                                Margin="5"
+                                Background="#F8BBD0"
+                                FontWeight="Bold"
+                                Click="StartQuizButton_Click"/>
+                        <Button x:Name="SubmitAnswerButton"
+                                Content="Submit Answer"
+                                Width="130"
+                                Padding="8"
+                                Margin="5"
+                                IsEnabled="False"
+                                Click="SubmitAnswerButton_Click"/>
+                        <Button x:Name="NextQuestionButton"
+                                Content="Next Question"
+                                Width="130"
+                                Padding="8"
+                                Margin="5"
+                                IsEnabled="False"
+                                Click="NextQuestionButton_Click"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
         </TabControl>
     </Grid>
 </Window>

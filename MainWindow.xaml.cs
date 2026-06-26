@@ -9,6 +9,8 @@ namespace CybersecurityChatbot
     {
         private readonly ChatBot _chatBot;
         private readonly TaskManager _taskManager;
+        private readonly QuizManager _quizManager;
+        private bool _quizAnswerSubmitted;
 
         public MainWindow()
         {
@@ -16,6 +18,7 @@ namespace CybersecurityChatbot
 
             _chatBot = new ChatBot();
             _taskManager = new TaskManager();
+            _quizManager = new QuizManager();
 
             PlayVoiceGreeting();
             LoadAsciiArt();
@@ -153,6 +156,105 @@ namespace CybersecurityChatbot
             {
                 TaskStatusText.Text = _taskManager.LastError;
             }
+        }
+
+
+
+        private void StartQuizButton_Click(object sender, RoutedEventArgs e)
+        {
+            StartQuiz();
+        }
+
+        private void StartQuiz()
+        {
+            _quizManager.ResetQuiz();
+            _quizAnswerSubmitted = false;
+            StartQuizButton.Content = "Restart Quiz";
+            LoadCurrentQuizQuestion();
+        }
+
+        private void SubmitAnswerButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_quizAnswerSubmitted)
+            {
+                QuizFeedbackText.Text = "Click Next Question to continue.";
+                return;
+            }
+
+            if (QuizOptionsList.SelectedItem is not string selectedAnswer)
+            {
+                QuizFeedbackText.Text = "Select an answer before submitting.";
+                return;
+            }
+
+            QuizAnswerResult result = _quizManager.SubmitAnswer(selectedAnswer);
+            _quizAnswerSubmitted = true;
+            QuizFeedbackText.Text = result.Feedback;
+            QuizFeedbackText.Foreground = result.IsCorrect
+                ? System.Windows.Media.Brushes.DarkGreen
+                : System.Windows.Media.Brushes.DarkRed;
+
+            QuizOptionsList.IsEnabled = false;
+            SubmitAnswerButton.IsEnabled = false;
+            NextQuestionButton.Content = _quizManager.CurrentQuestionNumber == _quizManager.QuestionCount
+                ? "View Score"
+                : "Next Question";
+            NextQuestionButton.IsEnabled = true;
+        }
+
+        private void NextQuestionButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (!_quizAnswerSubmitted)
+            {
+                QuizFeedbackText.Text = "Submit an answer first.";
+                return;
+            }
+
+            _quizManager.MoveNext();
+
+            if (_quizManager.IsFinished)
+            {
+                ShowQuizResult();
+                return;
+            }
+
+            _quizAnswerSubmitted = false;
+            LoadCurrentQuizQuestion();
+        }
+
+        private void LoadCurrentQuizQuestion()
+        {
+            QuizQuestion? question = _quizManager.GetCurrentQuestion();
+
+            if (question == null)
+            {
+                ShowQuizResult();
+                return;
+            }
+
+            QuizProgressText.Text = $"Question {_quizManager.CurrentQuestionNumber} of {_quizManager.QuestionCount} | Score: {_quizManager.Score}";
+            QuizQuestionText.Text = question.Question;
+            QuizOptionsList.ItemsSource = question.Options;
+            QuizOptionsList.SelectedItem = null;
+            QuizOptionsList.IsEnabled = true;
+            QuizFeedbackText.Text = string.Empty;
+            QuizFeedbackText.Foreground = System.Windows.Media.Brushes.Black;
+            SubmitAnswerButton.IsEnabled = true;
+            NextQuestionButton.IsEnabled = false;
+            NextQuestionButton.Content = "Next Question";
+        }
+
+        private void ShowQuizResult()
+        {
+            QuizProgressText.Text = $"Final score: {_quizManager.GetFinalScore()}";
+            QuizQuestionText.Text = "Quiz complete!";
+            QuizOptionsList.ItemsSource = null;
+            QuizOptionsList.IsEnabled = false;
+            QuizFeedbackText.Foreground = System.Windows.Media.Brushes.DarkBlue;
+            QuizFeedbackText.Text = _quizManager.GetFinalMessage();
+            SubmitAnswerButton.IsEnabled = false;
+            NextQuestionButton.IsEnabled = false;
+            StartQuizButton.Content = "Try Again";
         }
 
         private void AppendUserMessage(string message)
