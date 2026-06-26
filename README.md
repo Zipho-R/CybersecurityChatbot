@@ -208,8 +208,13 @@ The Part 3 development history should contain at least six meaningful commits. T
 
 ## Video Presentations
 
-**Part 2 unlisted video:** https://youtu.be/dV-LBfXXMMo?si=JIAXsiHnxPsrl8N  
-**Part 3 unlisted video:** Add final Part 3 YouTube link here before submission.
+**Part 2 unlisted video:** 
+https://youtu.be/dV-LBfXXMMo?si=JIAXsiHnxPsrl8N
+
+**Part 3 unlisted video:** 
+
+[Watch the Part 3 Cybersecurity Chatbot demonstration on YouTube](https://youtu.be/rbQEykJPNT8)
+.
 
 The Part 3 recording must use the student's own voice and demonstrate the running application, important code, commit history, three releases, and a successful GitHub Actions run.
 
